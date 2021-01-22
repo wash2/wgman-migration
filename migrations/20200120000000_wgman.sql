@@ -88,19 +88,35 @@ ALTER TABLE public."UserPassword"
 
 CREATE TABLE public."PeerRelation"
 (
-    endpoint uuid NOT NULL,
-    peer uuid NOT NULL,
-    peer_allowed_ip inet[] DEFAULT '{}'::inet[],
-    endpoint_allowed_ip inet[] DEFAULT '{}'::inet[],
-    CONSTRAINT peer_relation PRIMARY KEY (endpoint, peer)
-        INCLUDE(endpoint, peer),
-    CONSTRAINT client FOREIGN KEY (peer)
+    endpoint_id uuid NOT NULL,
+    peer_id uuid NOT NULL,
+    peer_allowed_ip inet[] NOT NULL DEFAULT '{}'::inet[],
+    endpoint_allowed_ip inet[] NOT NULL DEFAULT '{}'::inet[],
+    peer_name text COLLATE pg_catalog."default" NOT NULL,
+    endpoint_name text COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT peer_relation PRIMARY KEY (endpoint_id, peer_id)
+        INCLUDE(endpoint_id, peer_id),
+    CONSTRAINT endpoint_name_unique UNIQUE (endpoint_name)
+        INCLUDE(endpoint_name),
+    CONSTRAINT peer_name_unique UNIQUE (peer_name)
+        INCLUDE(peer_name),
+    CONSTRAINT endpoint_id_foreign FOREIGN KEY (endpoint_id)
         REFERENCES public."Interface" (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID,
-    CONSTRAINT server FOREIGN KEY (endpoint)
+    CONSTRAINT endpoint_name_foreign FOREIGN KEY (endpoint_name)
+        REFERENCES public."Interface" (name) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT peer_id_foreign FOREIGN KEY (peer_id)
         REFERENCES public."Interface" (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT peer_name_foreign FOREIGN KEY (peer_name)
+        REFERENCES public."Interface" (name) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
@@ -110,6 +126,3 @@ TABLESPACE pg_default;
 
 ALTER TABLE public."PeerRelation"
     OWNER to postgres;
-
-COMMENT ON CONSTRAINT peer_relation ON public."PeerRelation"
-    IS 'client-server pair';

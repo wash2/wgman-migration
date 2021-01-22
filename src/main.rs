@@ -1,8 +1,8 @@
 use std::error::Error;
-use dao::User;
-use wgman::{config::get_db_cfg, dao, auth};
-use sqlx::migrate::{Migrator};
+use sqlx::{Pool, Postgres, migrate::{Migrator}, postgres::PgPoolOptions};
 use std::path::Path;
+use wgman_core::{config::get_db_cfg, types::User, auth};
+use std::env::{var};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -15,18 +15,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     };
 
-    let pool = match dao::connect(db_cfg).await {
-        Ok(u) => {u},
-        Err(_) => {
-            std::process::exit(1);
-        }
-    };
+    let pool: Pool<Postgres> = PgPoolOptions::new()
+    .max_connections(20)
+    .connect(&format!("postgres://{}:{}@{}:{}/{}", db_cfg.user, db_cfg.pw, db_cfg.host, db_cfg.port, db_cfg.name))
+    .await?;
 
     let m = Migrator::new(Path::new("./migrations")).await?;
     m.run(&pool).await?;
 
-    let User {id, name: _, is_admin: _ }: User = dao::get_user_by_name(&pool, String::from("admin")).await?;
-    let auth::Hash { pbkdf2_hash, salt}: auth::Hash = match auth::encrypt("dummy pw") {
+    let User { id, name: _, is_admin: _ } = sqlx::query_as::<_, User>("SELECT id FROM public.\"User\" Where name = $1")
+    .bind("admin")
+    .fetch_one(&pool)
+    .await?;
+
+    let pw = var("WGMAN_DB_ADMIN_PW")?;
+
+    let auth::Hash { pbkdf2_hash, salt}: auth::Hash = match auth::encrypt(&pw) {
         Ok(hash) => hash,
         Err(_) => {
             println!("Failed to encrypt password for wgman admin user. No UserPassword entry was created.");
@@ -34,7 +38,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         },
     };
 
-    let _rec = sqlx::query!("Insert INTO public.\"UserPassword\" (id, password_hash, salt) Values ($1, $2, $3);", id, std::str::from_utf8(&pbkdf2_hash[..])?, std::str::from_utf8(&salt[..])?)
+    let _rec = sqlx::query("Insert INTO public.\"UserPassword\" (id, password_hash, salt) Values ($1, $2, $3);")
+    .bind(id)
+    .bind(std::str::from_utf8(&pbkdf2_hash[..])?)
+    .bind(std::str::from_utf8(&salt[..])?)
     .fetch_one(&pool)
     .await?;
 
