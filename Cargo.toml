@@ -7,7 +7,9 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sqlx = { git = "https://github.com/launchbadge/sqlx.git", features = [ "runtime-tokio-rustls", "uuid", "ipnetwork", "postgres" ] }
-tokio = { version = "1.0", features = ["full"] }
-# wgman-core = { git = "https://github.com/wash2/wgman-core.git" }
-wgman-core = { path = "../wgman-core" }
+sqlx = { version = "0.4", features = [ "runtime-tokio-rustls", "uuid", "ipnetwork", "postgres" ] }
+# sqlx = { git = "https://github.com/launchbadge/sqlx.git", features = [ "runtime-tokio-rustls", "uuid", "ipnetwork", "postgres" ] }
+# tokio = { version = "1.0", features = ["full"] }
+tokio = { version = "0.2", features = ["full"] }
+# wgman-core = { path = "../wgman-core" }
+wgman-core = "0.1"

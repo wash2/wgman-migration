@@ -42,14 +42,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         },
     };
 
-    let pbkdf2_hash: String = pbkdf2_hash.iter().map(|b| b.clone() as char).collect();
-    let salt: String = salt.iter().map(|b| b.clone() as char).collect();
+    
+    
 
     println!("adding user password");
     sqlx::query("Insert INTO public.admin_password (id, password_hash, salt) Values ($1, $2, $3);")
     .bind(id)
-    .bind(pbkdf2_hash)
-    .bind(salt)
+    .bind(&pbkdf2_hash[..])
+    .bind(&salt[..])
     .execute(&pool)
     .await?;
 

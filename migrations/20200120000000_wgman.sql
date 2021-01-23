@@ -20,12 +20,7 @@ CREATE TABLE public.interface
         INCLUDE(u_name),
     CONSTRAINT public_key_unique UNIQUE (u_name)
         INCLUDE(u_name)
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE public.interface
-    OWNER to postgres;
+);
 
 -- Table: public.interface_password
 
@@ -34,20 +29,15 @@ ALTER TABLE public.interface
 CREATE TABLE public.interface_password
 (
     id uuid NOT NULL,
-    password_hash character varying(128) COLLATE pg_catalog."default" NOT NULL,
-    salt character varying(128) COLLATE pg_catalog."default" NOT NULL,
+    password_hash bytea NOT NULL,
+    salt bytea NOT NULL,
     CONSTRAINT "InterfacePassword_pkey" PRIMARY KEY (id),
     CONSTRAINT id FOREIGN KEY (id)
         REFERENCES public.interface (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE public.interface_password
-    OWNER to postgres;
+);
 
 -- Table: public.peer_relation
 
@@ -87,12 +77,9 @@ CREATE TABLE public.peer_relation
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
-)
+);
 
-TABLESPACE pg_default;
 
-ALTER TABLE public.peer_relation
-    OWNER to postgres;
 
 -- Table: public.admin
 
@@ -104,12 +91,7 @@ CREATE TABLE public.admin
     u_name text COLLATE pg_catalog."default" NOT NULL,
     is_root boolean NOT NULL,
     CONSTRAINT "User_pkey" PRIMARY KEY (id)
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE public.admin
-    OWNER to postgres;
+);
 
 -- Table: public.admin_password
 
@@ -118,20 +100,15 @@ ALTER TABLE public.admin
 CREATE TABLE public.admin_password
 (
     id uuid NOT NULL,
-    password_hash character varying(128) COLLATE pg_catalog."default" NOT NULL,
-    salt character varying(128) COLLATE pg_catalog."default" NOT NULL,
+    password_hash bytea NOT NULL,
+    salt bytea NOT NULL,
     CONSTRAINT "Password_pkey" PRIMARY KEY (id),
     CONSTRAINT id FOREIGN KEY (id)
         REFERENCES public.admin (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE public.admin_password
-    OWNER to postgres;
+);
 
 Insert INTO public.admin (u_name, is_root)
 Values ('root', true);
