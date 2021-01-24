@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{convert::TryInto, error::Error};
 use sqlx::{Pool, Postgres, migrate::{Migrator}, postgres::PgPoolOptions};
 use std::path::Path;
 use wgman_core::{config::get_db_cfg, types::Admin, auth};
@@ -41,17 +41,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
             std::process::exit(1);
         },
     };
+    // dbg!(pbkdf2_hash);
+    // dbg!(salt);
 
-    
-    
 
     println!("adding user password");
-    sqlx::query("Insert INTO public.admin_password (id, password_hash, salt) Values ($1, $2, $3);")
+    sqlx::query("Insert INTO public.admin_password (id, u_name, password_hash, salt) Values ($1, $2, $3, $4);")
     .bind(id)
+    .bind(String::from("root"))
     .bind(&pbkdf2_hash[..])
     .bind(&salt[..])
     .execute(&pool)
     .await?;
+
+
+    // let test = sqlx::query_as::<_, wgman_core::types::AdminPassword>("SELECT * FROM public.admin_password WHERE id = $1")
+    // .bind(id)
+    // .fetch_one(&pool)
+    // .await?;
+    // let entered_hash: [u8; 64] = test.password_hash[..].try_into().expect("oops");
+    // let entered_salt: [u8; 64] = test.salt[..].try_into().expect("oops");
+    // assert_eq!(pbkdf2_hash, entered_hash);
+    // assert_eq!(salt, entered_salt);
 
     Ok(println!("Migration Complete"))
 }
