@@ -29,11 +29,19 @@ CREATE TABLE public.interface
 CREATE TABLE public.interface_password
 (
     id uuid NOT NULL,
+    u_name text COLLATE pg_catalog."default" NOT NULL,
     password_hash bytea NOT NULL,
     salt bytea NOT NULL,
     CONSTRAINT "InterfacePassword_pkey" PRIMARY KEY (id),
+    CONSTRAINT interface_pw_name_unique UNIQUE (u_name)
+        INCLUDE(u_name),
     CONSTRAINT id FOREIGN KEY (id)
         REFERENCES public.interface (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT interface_pw_name_foreign FOREIGN KEY (u_name)
+        REFERENCES public.interface (u_name) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
@@ -90,7 +98,9 @@ CREATE TABLE public.admin
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     u_name text COLLATE pg_catalog."default" NOT NULL,
     is_root boolean NOT NULL,
-    CONSTRAINT "User_pkey" PRIMARY KEY (id)
+    CONSTRAINT "User_pkey" PRIMARY KEY (id),
+    CONSTRAINT admin_name_unique UNIQUE (u_name)
+        INCLUDE(u_name)
 );
 
 -- Table: public.admin_password
@@ -100,11 +110,19 @@ CREATE TABLE public.admin
 CREATE TABLE public.admin_password
 (
     id uuid NOT NULL,
+    u_name text COLLATE pg_catalog."default" NOT NULL,
     password_hash bytea NOT NULL,
     salt bytea NOT NULL,
     CONSTRAINT "Password_pkey" PRIMARY KEY (id),
+    CONSTRAINT admin_pw_name_unique UNIQUE (u_name)
+        INCLUDE(u_name),
     CONSTRAINT id FOREIGN KEY (id)
         REFERENCES public.admin (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT admin_pw_name_foreign FOREIGN KEY (u_name)
+        REFERENCES public.admin (u_name) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
