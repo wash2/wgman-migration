@@ -1,7 +1,7 @@
 -- Table: public.Interface
 
 -- DROP TABLE public."Interface";
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Table: public.interface
 
@@ -9,17 +9,16 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE public.interface
 (
-    id uuid NOT NULL DEFAULT uuid_generate_v4(),
     u_name text COLLATE pg_catalog."default" NOT NULL,
     port integer,
     ip inet,
     public_key character(45) COLLATE pg_catalog."default",
     fqdn character varying(253) COLLATE pg_catalog."default",
-    CONSTRAINT "Account_pkey" PRIMARY KEY (id),
+    CONSTRAINT "Account_pkey" PRIMARY KEY (public_key),
     CONSTRAINT name_unique UNIQUE (u_name)
         INCLUDE(u_name),
-    CONSTRAINT public_key_unique UNIQUE (u_name)
-        INCLUDE(u_name)
+    CONSTRAINT public_key_unique UNIQUE (public_key)
+        INCLUDE(public_key)
 );
 
 -- Table: public.interface_password
@@ -28,22 +27,16 @@ CREATE TABLE public.interface
 
 CREATE TABLE public.interface_password
 (
-    id uuid NOT NULL,
     u_name text COLLATE pg_catalog."default" NOT NULL,
     password_hash bytea NOT NULL,
     salt bytea NOT NULL,
-    CONSTRAINT "InterfacePassword_pkey" PRIMARY KEY (id),
+    CONSTRAINT "InterfacePassword_pkey" PRIMARY KEY (u_name),
     CONSTRAINT interface_pw_name_unique UNIQUE (u_name)
         INCLUDE(u_name),
-    CONSTRAINT id FOREIGN KEY (id)
-        REFERENCES public.interface (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID,
     CONSTRAINT interface_pw_name_foreign FOREIGN KEY (u_name)
         REFERENCES public.interface (u_name) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
         NOT VALID
 );
 
@@ -53,37 +46,25 @@ CREATE TABLE public.interface_password
 
 CREATE TABLE public.peer_relation
 (
-    endpoint_id uuid NOT NULL,
-    peer_id uuid NOT NULL,
-    peer_allowed_ip inet[] NOT NULL DEFAULT '{}'::inet[],
-    endpoint_allowed_ip inet[] NOT NULL DEFAULT '{}'::inet[],
-    peer_name text COLLATE pg_catalog."default" NOT NULL,
-    endpoint_name text COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT peer_relation_tuple PRIMARY KEY (endpoint_id, peer_id)
-        INCLUDE(endpoint_id, peer_id),
-    CONSTRAINT endpoint_name_unique UNIQUE (endpoint_name)
-        INCLUDE(endpoint_name),
-    CONSTRAINT peer_name_unique UNIQUE (peer_name)
-        INCLUDE(peer_name),
-    CONSTRAINT endpoint_id_foreign FOREIGN KEY (endpoint_id)
-        REFERENCES public.interface (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+    peer_allowed_ip inet[] DEFAULT '{}'::inet[],
+    endpoint_allowed_ip inet[] DEFAULT '{}'::inet[],
+    peer_public_key character(45) COLLATE pg_catalog."default" NOT NULL,
+    endpoint_public_key character(45) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT peer_relation_tuple PRIMARY KEY (peer_allowed_ip, endpoint_allowed_ip)
+        INCLUDE(peer_allowed_ip, endpoint_allowed_ip),
+    CONSTRAINT endpoint_public_key_unique UNIQUE (endpoint_public_key)
+        INCLUDE(endpoint_public_key),
+    CONSTRAINT peer_public_key_unique UNIQUE (peer_public_key)
+        INCLUDE(peer_public_key),
+    CONSTRAINT endpoint_public_key_foreign FOREIGN KEY (endpoint_public_key)
+        REFERENCES public.interface (public_key) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
         NOT VALID,
-    CONSTRAINT endpoint_name_foreign FOREIGN KEY (endpoint_name)
-        REFERENCES public.interface (u_name) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID,
-    CONSTRAINT peer_id_foreign FOREIGN KEY (peer_id)
-        REFERENCES public.interface (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID,
-    CONSTRAINT peer_name_foreign FOREIGN KEY (peer_name)
-        REFERENCES public.interface (u_name) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+    CONSTRAINT peer_public_key_foreign FOREIGN KEY (peer_public_key)
+        REFERENCES public.interface (public_key) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
         NOT VALID
 );
 
@@ -95,10 +76,9 @@ CREATE TABLE public.peer_relation
 
 CREATE TABLE public.admin
 (
-    id uuid NOT NULL DEFAULT uuid_generate_v4(),
     u_name text COLLATE pg_catalog."default" NOT NULL,
     is_root boolean NOT NULL,
-    CONSTRAINT "User_pkey" PRIMARY KEY (id),
+    CONSTRAINT "User_pkey" PRIMARY KEY (u_name),
     CONSTRAINT admin_name_unique UNIQUE (u_name)
         INCLUDE(u_name)
 );
@@ -109,22 +89,16 @@ CREATE TABLE public.admin
 
 CREATE TABLE public.admin_password
 (
-    id uuid NOT NULL,
     u_name text COLLATE pg_catalog."default" NOT NULL,
     password_hash bytea NOT NULL,
     salt bytea NOT NULL,
-    CONSTRAINT "Password_pkey" PRIMARY KEY (id),
+    CONSTRAINT "Password_pkey" PRIMARY KEY (u_name),
     CONSTRAINT admin_pw_name_unique UNIQUE (u_name)
         INCLUDE(u_name),
-    CONSTRAINT id FOREIGN KEY (id)
-        REFERENCES public.admin (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID,
     CONSTRAINT admin_pw_name_foreign FOREIGN KEY (u_name)
         REFERENCES public.admin (u_name) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
         NOT VALID
 );
 

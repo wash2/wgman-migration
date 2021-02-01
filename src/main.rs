@@ -23,13 +23,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     .connect(db_url)
     .await?;
 
-    println!("running migrations");
+    println!("loading migrations");
     let m = Migrator::new(Path::new("./migrations")).await?;
+    println!("running migrations");
     m.run(&pool).await?;
     let pw = var("WGMAN_DB_ROOT_PW")?;
 
     println!("getting root");
-    let Admin { id, u_name: _, is_root: _ } = sqlx::query_as::<_, Admin>("SELECT * FROM public.admin WHERE u_name = 'root'")
+    let Admin { u_name: _, is_root: _ } = sqlx::query_as::<_, Admin>("SELECT * FROM public.admin WHERE u_name = 'root'")
     .fetch_one(&pool)
     .await?;
 
@@ -46,8 +47,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 
     println!("adding user password");
-    sqlx::query("Insert INTO public.admin_password (id, u_name, password_hash, salt) Values ($1, $2, $3, $4);")
-    .bind(id)
+    sqlx::query("Insert INTO public.admin_password (u_name, password_hash, salt) Values ($1, $2, $3);")
     .bind(String::from("root"))
     .bind(&pbkdf2_hash[..])
     .bind(&salt[..])

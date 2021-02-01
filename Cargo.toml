@@ -11,5 +11,5 @@ sqlx = { version = "0.4", features = [ "runtime-tokio-rustls", "uuid", "ipnetwor
 # sqlx = { git = "https://github.com/launchbadge/sqlx.git", features = [ "runtime-tokio-rustls", "uuid", "ipnetwork", "postgres" ] }
 # tokio = { version = "1.0", features = ["full"] }
 tokio = { version = "0.2", features = ["full"] }
-wgman-core = { path = "../wgman-core" }
-# wgman-core = "0.2"
+# wgman-core = { path = "../wgman-core" }
+wgman-core = "0.6"
