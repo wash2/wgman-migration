@@ -12,7 +12,7 @@ CREATE TABLE public.interface
     u_name text COLLATE pg_catalog."default" NOT NULL,
     port integer,
     ip inet,
-    public_key character(45) COLLATE pg_catalog."default",
+    public_key character(44) COLLATE pg_catalog."default",
     fqdn character varying(253) COLLATE pg_catalog."default",
     CONSTRAINT "Account_pkey" PRIMARY KEY (public_key),
     CONSTRAINT name_unique UNIQUE (u_name)
@@ -46,11 +46,14 @@ CREATE TABLE public.interface_password
 
 CREATE TABLE public.peer_relation
 (
+    peer_name character(44) COLLATE pg_catalog."default" NOT NULL,
+    endpoint_name character(44) COLLATE pg_catalog."default" NOT NULL,
     peer_allowed_ip inet[] DEFAULT '{}'::inet[],
     endpoint_allowed_ip inet[] DEFAULT '{}'::inet[],
-    peer_public_key character(45) COLLATE pg_catalog."default" NOT NULL,
-    endpoint_public_key character(45) COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT peer_relation_tuple PRIMARY KEY (peer_allowed_ip, endpoint_allowed_ip)
+    peer_public_key character(44) COLLATE pg_catalog."default",
+    endpoint_public_key character(44) COLLATE pg_catalog."default",
+
+    CONSTRAINT peer_relation_tuple PRIMARY KEY (peer_name, endpoint_name)
         INCLUDE(peer_allowed_ip, endpoint_allowed_ip),
     CONSTRAINT endpoint_public_key_unique UNIQUE (endpoint_public_key)
         INCLUDE(endpoint_public_key),
@@ -63,6 +66,20 @@ CREATE TABLE public.peer_relation
         NOT VALID,
     CONSTRAINT peer_public_key_foreign FOREIGN KEY (peer_public_key)
         REFERENCES public.interface (public_key) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+        NOT VALID,
+    CONSTRAINT endpoint_name_unique UNIQUE (endpoint_name)
+        INCLUDE(endpoint_name),
+    CONSTRAINT peer_name_unique UNIQUE (peer_name)
+        INCLUDE(peer_name),
+    CONSTRAINT endpoint_name_foreign FOREIGN KEY (endpoint_name)
+        REFERENCES public.interface (u_name) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+        NOT VALID,
+    CONSTRAINT peer_name_foreign FOREIGN KEY (peer_name)
+        REFERENCES public.interface (u_name) MATCH SIMPLE
         ON UPDATE CASCADE
         ON DELETE CASCADE
         NOT VALID
